@@ -1,0 +1,96 @@
+{
+  "id": "eb5a59a6-5662-4b40-8b7d-2ce56ff3cbdf",
+  "title": "Custom Documents Report",
+  "description": "",
+  "actor": "87bfd61a-f915-4eb7-a6c4-ce402b886428",
+  "owner": "87bfd61a-f915-4eb7-a6c4-ce402b886428",
+  "ownerType": "USER",
+  "isPrivate": false,
+  "schemaVersion": 4,
+  "trigger": {
+    "schedule": {
+      "isActive": true,
+      "trigger": {
+        "time": "00:00",
+        "type": "time"
+      },
+      "rule": null,
+      "filterParameters": {
+        "earliestStart": "2026-07-10"
+      },
+      "timezone": "America/Asuncion",
+      "inputs": {}
+    }
+  },
+  "result": null,
+  "type": "STANDARD",
+  "input": {},
+  "hourlyExecutionLimit": 1000,
+  "guide": null,
+  "tasks": {
+    "get_dashboards": {
+      "name": "get_dashboards",
+      "input": {
+        "script": "import { documentsClient } from \"@dynatrace-sdk/client-document\";\n\nexport default async function (payload: unknown) {\n  //const filter = \"type = 'dashboard' and (name starts-with 'grupo2')\";\n  const pageSize = 1000; // m\u00e1ximo permitido por la API\n\n  let allDocuments: any[] = [];\n  let pageKey: string | undefined = undefined;\n\n  do {\n    const res = await documentsClient.listDocuments({\n      pageSize,\n      //filter,\n      adminAccess: true,\n      ...(pageKey ? { pageKey } : {}), // en la primera llamada no se env\u00eda pageKey\n    });\n\n    allDocuments = allDocuments.concat(res.documents);\n    pageKey = res.nextPageKey;\n  } while (pageKey);\n\n  return allDocuments;\n}"
+      },
+      "action": "dynatrace.automations:run-javascript",
+      "position": {
+        "x": 0,
+        "y": 1
+      },
+      "conditions": {
+        "states": {}
+      },
+      "description": "Run custom JavaScript code.",
+      "predecessors": []
+    },
+    "lookups_documents_report": {
+      "name": "lookups_documents_report",
+      "input": {
+        "script": "import { execution } from '@dynatrace-sdk/automation-utils';\n\nexport default async function () {\n  const ex = await execution();\n\n  // Traer el resultado de la tarea anterior por su nombre\n  const dashboards = await ex.result('get_dashboards');\n\n  // Convertir el array a formato JSONL (un objeto JSON por l\u00ednea)\n  const jsonl = dashboards\n    .map((doc) => JSON.stringify(doc))\n    .join('\\n');\n\n  const request = {\n    lookupField: 'id', // campo \u00fanico que identifica cada registro\n    filePath: '/lookups/documents_report',\n    overwrite: true,\n    displayName: 'documents_report',\n    skippedRecords: 0,\n    autoFlatten: true,\n    timezone: 'UTC',\n    locale: 'en_US',\n    description: 'lookup table con el listado de canales digitales',\n    parsePattern: 'JSON:data',\n  };\n\n  const blob = new Blob([jsonl], { type: 'application/jsonl' });\n  const file = new File([blob], 'documents_report.jsonl', {\n    type: 'application/jsonl',\n  });\n\n  const formData = new FormData();\n  formData.append('request', JSON.stringify(request));\n  formData.append('content', file);\n\n  const response = await fetch(\n    '/platform/storage/resource-store/v1/files/tabular/lookup:upload',\n    {\n      method: 'POST',\n      body: formData,\n    }\n  );\n\n  if (!response.ok) {\n    const errorText = await response.text();\n    throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);\n  }\n\n  const result = await response.json();\n  console.log('Lookup data uploaded successfully:', result);\n\n  return {\n    success: true,\n    totalRecords: dashboards.length,\n    uploadResult: result,\n  };\n}",
+        "sdkMajorVersions": {
+          "@dynatrace-sdk/units": "1",
+          "@dynatrace-sdk/client-hub": "2",
+          "@dynatrace-sdk/client-iam": "1",
+          "@dynatrace-sdk/adhoc-utils": "1",
+          "@dynatrace-sdk/http-client": "1",
+          "@dynatrace-sdk/client-query": "1",
+          "@dynatrace-sdk/shared-errors": "1",
+          "@dynatrace-sdk/error-handlers": "1",
+          "@dynatrace-sdk/app-environment": "1",
+          "@dynatrace-sdk/client-document": "1",
+          "@dynatrace-sdk/automation-utils": "2",
+          "@dynatrace-sdk/client-synthetic": "1",
+          "@dynatrace-sdk/user-preferences": "1",
+          "@dynatrace-sdk/client-automation": "8",
+          "@dynatrace-sdk/client-hub-catalog": "0",
+          "@dynatrace-sdk/shared-client-utils": "1",
+          "@dynatrace-sdk/client-resource-store": "1",
+          "@dynatrace-sdk/client-davis-analyzers": "1",
+          "@dynatrace-sdk/client-bucket-management": "3",
+          "@dynatrace-sdk/client-app-engine-registry": "3",
+          "@dynatrace-sdk/client-classic-environment-v1": "2",
+          "@dynatrace-sdk/client-classic-environment-v2": "6",
+          "@dynatrace-sdk/client-app-engine-edge-connect": "1",
+          "@dynatrace-sdk/client-service-level-objectives": "1",
+          "@dynatrace-sdk/client-filter-segment-management": "1",
+          "@dynatrace-sdk/client-platform-management-service": "1"
+        }
+      },
+      "action": "dynatrace.automations:run-javascript",
+      "position": {
+        "x": 0,
+        "y": 2
+      },
+      "conditions": {
+        "states": {
+          "get_dashboards": "OK"
+        }
+      },
+      "description": "Run custom JavaScript code.",
+      "predecessors": [
+        "get_dashboards"
+      ]
+    }
+  }
+}

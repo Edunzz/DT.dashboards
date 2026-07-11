@@ -13,7 +13,8 @@ en tu tenant de Dynatrace.
 | Carpeta | Descripción |
 |---|---|
 | `mssql_server/` | Dashboard(s) de monitoreo para SQL Server. |
-| `dynatrace/custom-documents-report/` | Dashboard + workflow para inventariar y auditar documentos (dashboards y notebooks) del tenant vía lookup table en Grail. |
+| `dynatrace/custom-documents-report-spanish/` | Dashboard + workflow para inventariar y auditar documentos (dashboards y notebooks) del tenant vía lookup table en Grail. (Español) |
+| `dynatrace/custom-documents-report-english/` | Dashboard + workflow to inventory and audit tenant documents (dashboards and notebooks) via Grail lookup table. (English) |
 
 ## Cómo contribuir / usar
 Cada carpeta incluye su propio `README.md` con el procedimiento de importación,
