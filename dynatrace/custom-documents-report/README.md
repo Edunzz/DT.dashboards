@@ -20,7 +20,7 @@ El dashboard **NO consulta la API directamente**: lee de una **lookup table en G
 [Dashboard Custom Documents Report]  -> load "/lookups/documents_report" | ...
 ```
 
-![Vista general del dashboard](./img/dashboard-overview.png)
+![Vista general del dashboard](./img/dashboard-overview.jpeg)
 
 ## Archivos en esta carpeta
 - `Custom Documents Report.json` — el dashboard (importar en la app **Dashboards**).
@@ -74,7 +74,7 @@ El workflow ejecuta 2 tasks de tipo *Run JavaScript*, cada una necesita scopes d
 2. Importa `custom-documents-report.workflow.json` (o crea un workflow nuevo y pega las 2 tasks *Run JavaScript*).
 3. Revisa el **trigger**: viene programado a las `00:00` en zona horaria `America/Asuncion`. Ajústalo a tu preferencia.
 
-![Workflow con sus 2 tasks en estado Success](./img/workflow-tasks.png)
+![Workflow con sus 2 tasks en estado Success](./img/workflow-tasks.jpeg)
 
 ### Paso 3 — Configurar permisos / actor
 1. Asigna al actor del workflow los scopes de la sección **Permisos**.
